@@ -9,8 +9,10 @@ from pyspark.sql.functions import col
 infile = '../data/amazon_imdb_match_p3.txt'
 asin_list = []
 for line in open(infile, 'r'):
-	asin = line.split()[0]
-	asin_list.append(asin)
+	asin, s = line.split()
+	imdb_ids = s.split(',')
+	if len(imdb_ids) == 1:
+		asin_list.append(asin)
 
 region = os.getenv('AWS_REGION')
 bucket = os.getenv('AWS_BUCKET')

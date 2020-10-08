@@ -6,12 +6,6 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, collect_list, size, udf
 from pyspark.sql.types import StringType
 
-def extract_years(s, val_min, val_max):
-	years = re.findall('\D([12]\d{3})\D', s)
-	years = [int(year) for year in years if val_min <= int(year) <= val_max]
-	years = list(set(years))
-	return years
-
 def encode(title, skip_words=[], end_words=[], lower=True, replace=True, skip_par=False):
 	if lower: title = title.lower()
 	for word in end_words:
@@ -36,7 +30,7 @@ def match(src, desc, val, target, src_encode, desc_encode, key='key'):
 
 # Load IMDb metadata
 path = '../data/IMDb/imdb_meta.tsv.gz'
-names = ['imdb_id', 'X1', 'title', 'X2', 'X3', 'year', 'X4', 'X5', 'X6']
+names = ['imdb_id', 'X1', 'title', 'X3', 'X4', 'X5', 'X6', 'X7', 'X8']
 usecols = [name for name in names if name[0] != 'X']
 imdb_df = pd.read_csv(path, sep='\t', header=0, names=names, usecols=usecols, compression='gzip')
 
@@ -45,16 +39,9 @@ path = '../data/Amazon/amazon_meta.json'
 records = []
 for line in open(path, 'r'):
 	item = json.loads(line.strip())
-
-	# Extract year information from description
-	year = 0
-	if item['description']:
-		years = extract_years(item['description'][0], 1888, 2018)
-		if len(years) == 1: year = years[0]
-
-	record = (item['asin'], html.unescape(item['title']), year)
+	record = (item['asin'], html.unescape(item['title']))
 	records.append(record)
-amazon_df = pd.DataFrame.from_records(records, columns=['asin', 'title', 'year'])
+amazon_df = pd.DataFrame.from_records(records, columns=['asin', 'title'])
 
 sc = SparkContext()
 sc.setLogLevel('ERROR')
@@ -127,5 +114,5 @@ print('Titles with multiple matches =', n3)
 
 matched.imdb_id = matched.imdb_id.apply(lambda x: ','.join(map(str, x)))
 matched.sort_values(by='asin') \
-    .drop(['title', 'year'], axis=1) \
+    .drop(['title'], axis=1) \
 	.to_csv('../data/amazon_imdb_match.txt', sep=' ', header=False, index=False)
