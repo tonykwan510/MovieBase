@@ -1,15 +1,15 @@
 # Filter reviews based on matched metadata
-import json, os
+import os
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StringType
 from pyspark.sql.functions import col
 
 # Read Product IDs (asin) from matched metadata
-infile = '../data/amazon_imdb_match.csv'
+infile = '../data/amazon_imdb_match_p3.txt'
 asin_list = []
 for line in open(infile, 'r'):
-	asin = line.split(',')[0]
+	asin = line.split()[0]
 	asin_list.append(asin)
 
 region = os.getenv('AWS_REGION')

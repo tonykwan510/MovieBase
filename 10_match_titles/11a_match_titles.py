@@ -40,9 +40,6 @@ names = ['imdb_id', 'X1', 'title', 'X2', 'X3', 'year', 'X4', 'X5', 'X6']
 usecols = [name for name in names if name[0] != 'X']
 imdb_df = pd.read_csv(path, sep='\t', header=0, names=names, usecols=usecols, compression='gzip')
 
-# Save IMDb year to handle multiple matches later
-imdb_dict = imdb_df.set_index('imdb_id').year.to_dict()
-
 # Load Amazon metadata
 path = '../data/Amazon/amazon_meta.json'
 records = []
@@ -123,14 +120,6 @@ print('Titles with no match=', n1)
 matched = matched.toPandas()
 spark.stop()
 
-# Use year to reduce multiple matches
-def match_year(row):
-	keys = [key for key in row.imdb_id if imdb_dict[key] == row.year]
-	return keys if keys else row.imdb_id
-
-inds = matched.imdb_id.apply(len) > 1
-matched.loc[inds, 'imdb_id'] = matched[inds].apply(match_year, axis=1)
-
 n2 = (matched.imdb_id.apply(len) == 1).sum()
 n3 = (matched.imdb_id.apply(len) > 1).sum()
 print('Titles with one match =', n2)
@@ -139,4 +128,4 @@ print('Titles with multiple matches =', n3)
 matched.imdb_id = matched.imdb_id.apply(lambda x: ','.join(map(str, x)))
 matched.sort_values(by='asin') \
     .drop(['title', 'year'], axis=1) \
-	.to_csv('../data/amazon_imdb_match.csv', header=False, index=False)
+	.to_csv('../data/amazon_imdb_match.txt', sep=' ', header=False, index=False)

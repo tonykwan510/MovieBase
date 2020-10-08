@@ -2,17 +2,17 @@
 import gzip, json, html, re
 from bisect import bisect_left
 
-def load_imdb_meta(path, key, title):
+def load_imdb_meta(path, key, val):
 	meta = {}
 	k = 0
-	for line in gzip.open(path, 'rt', encoding='utf-8'):
+	for line in gzip.open(path, 'rt'):
 		fields = line.strip().split('\t')
 		k += 1
 		if k == 1:
 			headers = fields
 			continue
 		item = dict(zip(headers, fields))
-		meta[item[key]] = item[title]
+		meta[item[key]] = item[val]
 	return meta
 
 def load_amazon_meta(path, key, val):
@@ -107,7 +107,8 @@ print('Titles with no match=', n1)
 print('Titles with one match =', n2)
 print('Titles with multiple matches =', n3)
 
-with open('../data/amazon_imdb_match.csv', 'w') as op:
-	for key, val in match_keys.items():
-		if len(val) == 1:
-			op.write(f'{key},{val[0]}\n')
+with open('../data/amazon_imdb_match.txt', 'w') as op:
+	for asin, imdb_ids in match_keys.items():
+		if len(imdb_ids) >= 1:
+			s = ','.join(imdb_ids)
+			op.write(f'{asin_id} {s}\n')
