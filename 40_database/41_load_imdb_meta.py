@@ -42,3 +42,10 @@ pd.DataFrame(genres, columns=['name']) \
 	.to_sql('genres', engine, if_exists='replace', index_label='id')
 
 df.to_sql('movies', engine, if_exists='replace', index_label='id', dtype={'runtime': Integer()})
+
+# Set primary and foreign keys
+with engine.connect() as conn:
+	conn.execute('ALTER TABLE titleTypes ADD PRIMARY KEY (id)')
+	conn.execute('ALTER TABLE genres ADD PRIMARY KEY (id)')
+	conn.execute('ALTER TABLE movies ADD PRIMARY KEY (id)')
+	conn.execute('ALTER TABLE movies ADD FOREIGN KEY (titleType) REFERENCES titleTypes(id)')

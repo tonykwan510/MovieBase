@@ -33,6 +33,10 @@ password = os.getenv('MYSQL_PASSWORD')
 database = 'reviews'
 engine = create_engine(f'mysql://{user}:{password}@{host}/{database}')
 
+# Read movie IDs
+with engine.connect() as conn:
+	movie_df = pd.read_sql('SELECT id AS movie_id, imdb_id FROM movies', conn, index_col='imdb_id')
+
 for k, key in enumerate(keys):
 	# Read partition
 	print(f'Reading partition ({k+1}/{len(keys)})...')
@@ -41,10 +45,18 @@ for k, key in enumerate(keys):
 			convert_dates=['reviewTime'], lines=True) \
 		.drop(columns=['style', 'unixReviewTime', 'vote', 'image']) \
 		.join(match_df, on='asin', how='inner') \
-		.drop(columns=['asin'])
+		.join(movie_df, on='imdb_id', how='inner') \
+		.drop(columns=['asin', 'imdb_id'])
 
 	# Load partition into database
 	print(f'Loading {len(review_df)} records into database...')
 	if_exists = 'replace' if k == 0 else 'append'
-	review_df.to_sql('amazon_reviews', engine, if_exists=if_exists, index_label='id',
+	review_df.to_sql('amazon_reviews', engine, if_exists=if_exists, index=False,
 		dtype={'overall': SmallInteger(), 'reviewTime': Date()})
+
+	# Set primary and foreign keys
+	if k == 0:
+		with engine.connect() as conn:
+			conn.execute('ALTER TABLE amazon_reviews ADD COLUMN `id` int(10) unsigned PRIMARY KEY AUTO_INCREMENT')
+			conn.execute('ALTER TABLE amazon_reviews ADD FOREIGN KEY (movie_id) REFERENCES movies(id)')
+			conn.execute('ALTER TABLE amazon_reviews ADD INDEX (movie_id)')
