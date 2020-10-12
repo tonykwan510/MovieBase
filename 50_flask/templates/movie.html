@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html class="w3-margin">
+  <head>
+    <link rel="stylesheet" type="text/css" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}">
+    <title>Movie Advisor</title>
+  </head>
+
+  <body>
+    <div class="w3-center">
+    <h1>Movie Search</h1>
+    <form class="w3-container">
+    <div class="w3-row-padding">
+      <div class="w3-quarter">
+        <input class="w3-input w3-border" type="text" name="title" placeholder="Title">
+      </div>
+      <div class="w3-quarter">
+        <select class="w3-select w3-border" name="year">
+          <option value="" disabled selected>Release Year</option>
+          {% for year in options.years %}
+          <option value="{{year}}">{{year}}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="w3-quarter">
+        <select class="w3-select w3-border" name="genre">
+          <option value="" disabled selected>Genre</option>
+          {% for item in options.genres.items() %}
+          <option value="{{item[0]}}">{{item[1]}}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="w3-quarter">
+        <select class="w3-select w3-border" name="sortkey">
+          {% for key, val in options.sortkeys.items() %}
+          <option value="{{key}}">{{val}}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <p><button class="w3-button w3-border w3-border-blue w3-blue" type="submit">Search</button></p>
+    </form>
+
+    {% if result %}
+    {% if result.total > 1 %}
+    <p>{{result.total}} movies found.</p>
+    {% else %}
+    <p>{{result.total}} movie found.</p>
+    {% endif %}
+
+    {% if result.items %}
+    {% if result.pages > 1 %}
+    <div class="w3-bar">
+      {% if prev_url %}
+      <a href="{{prev_url}}" class="w3-bar-item w3-text-blue"><i class="fa fa-arrow-left"></i></a>
+      {% endif %}
+      <div class="w3-bar-item">Page {{result.page}} / {{result.pages}}</div>
+      {% if next_url %}
+      <a href="{{next_url}}" class="w3-bar-item w3-text-blue"><i class="fa fa-arrow-right"></i></a>
+      {% endif %}
+    </div>
+    {% endif %}
+    <table class="w3-table-all w3-hoverable">
+    <thead>
+    <tr class="w3-light-grey">
+      <th>Title</th>
+      <th>Type</th>
+      <th>Release Year</th>
+      <th>Runtime (min.)</th>
+      <th>Genres</th>
+      <th>Amazon Rating</th>
+      <th>IMDb Rating</th>
+    </tr>
+    </thead>
+    {% for item in result.items %}
+    <tr class="link" onclick="window.location='{{url_for('show_review', movie=item['id'])}}';">
+      <td>{{item.title}}</td>
+      <td>{{options.titleTypes[item.titleType]}}</td>
+      <td>{{item.year}}</td>
+      <td>{{item.runtime}}</td>
+      <td>
+      {% set codes = item.genres.split(',') %}
+      {{options['genres'][codes[0]]}}{% for code in codes[1:] %}, {{options['genres'][code]}}{% endfor %}
+      </td>
+      <td>{{item.amazon_rating}}</td>
+      <td>{{item.imdb_rating}}</td>
+    </tr>
+    {% endfor %}
+    </table>
+    {% endif %}
+    {% endif %}
+    </div>
+  </body>
+</html>

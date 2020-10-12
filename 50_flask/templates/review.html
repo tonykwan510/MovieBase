@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html class="w3-margin">
+  <head>
+    <title>Movie Advisor</title>
+    <link rel="stylesheet" type="text/css" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}">
+  </head>
+
+  <body>
+    <div class="w3-center">
+    <h1>{{movie.title}} ({{movie.year}})</h1>
+    <p>Runtime (min.): {{movie.runtime}}</p>
+    <p>Genres:{% set codes = movie.genres.split(',') %}
+    {{genres[codes[0]]}}{% for code in codes[1:] %}, {{genres[code]}}{% endfor %}</p>
+    <p>Amazon rating: {{movie.amazon_rating}} / 5</p>
+    <p>IMDb rating: {{movie.imdb_rating}} / 10</p>
+    <div class="w3-bar">
+      <form>
+      <input type="hidden" name="movie" value="{{movie.id}}">
+        <input class="w3-bar-item w3-border" type="text" name="keyword" placeholder="Search reviews">
+        <button class="w3-bar-item w3-button w3-border w3-border-blue w3-blue" type="submit">
+          <i class="fa fa-search"></i>
+        </button>
+      </form>
+    </div>
+    <p><a class="w3-button w3-border w3-border-blue w3-blue" href="{{url_for('show_movie')}}">
+      Back to movie search
+    </a></p>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <p>{{message}}</p>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% if result %}
+    {% if result.total > 1 %}
+    <p>{{result.total}} reviews found.</p>
+    {% else %}
+    <p>{{result.total}} review found.</p>
+    {% endif %}
+
+    {% if result.items %}
+    {% if result.pages > 1 %}
+    <div class="w3-bar">
+      {% if prev_url %}
+      <a href="{{prev_url}}" class="w3-bar-item w3-text-blue"><i class="fa fa-arrow-left"></i></a>
+      {% endif %}
+      <div class="w3-bar-item">Page {{result.page}} / {{result.pages}}</div>
+      {% if next_url %}
+      <a href="{{next_url}}" class="w3-bar-item w3-text-blue"><i class="fa fa-arrow-right"></i></a>
+      {% endif %}
+    </div>
+    {% endif %}
+    </div>
+    <div>
+      {% for item in result.items %}
+      <div class="w3-container w3-border w3-margin-top">
+        <div class="w3-bar w3-light-gray">
+          <div class="w3-bar-item">{{item.overall}} / 5</div>
+          <div class="w3-bar-item">{{item.summary}}</div>
+          <div class="w3-bar-item">{{item.reviewerName}} | {{item.reviewTime}}</div>
+        </div>
+        <p>{{item.reviewText}}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endif %}
+  </body>
+</html>
