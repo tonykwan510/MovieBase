@@ -6,7 +6,7 @@ Movie recommendation from user reviews.
 
 Movie reviews can be confusing. Different websites may rate a movie differently. If we try to take a closer look at the user reviews, there are just too many reviews. What can we do?
 
-In this project, Amazon product reviews and IMDb titles metadata are used to built a movie review database, and a movie recommendation system is built on top of the database. Users can use different criteria to search movies, as well as use keyword search to navigate the through the movie reviews.
+In this project, Amazon product reviews and IMDb titles metadata are used to built a movie review database, and a movie recommendation system is built on top of the database. Users can use different criteria to search movies, as well as use keyword search to navigate the movie reviews.
 
 ## Data Sources
 
@@ -24,7 +24,7 @@ Data cleaning is needed on Amazon product names before they can be matched with 
 
 | Amazon Product Name          | IMDb Title           |
 | ---------------------------- | -------------------- |
-| Mr &amp; Mrs Smith VHS       | Mr & Mrs Smith       |
+| Mr \&amp; Mrs Smith VHS        | Mr & Mrs Smith       |
 | THE SIXTH SENSE              | The Sixth Sense      |
 | Reno 911! - Miami            | Reno 911!: Miami     |
 | Timeline (2003) (Widescreen) | Timeline             |
@@ -50,4 +50,4 @@ Python packages used in the project:
 
 ## Repo Structure
 
-Folders and Python scripts are numbered and named to minimize confusion. There is a README file in each folder. Some scripts have alternative versions that use different methods to achieve the same result. The alternative versions are denoted by a letter after the number, for example, `00a_xxx.py`.
+Folders and Python scripts are numbered and named to minimize confusion. There is a README file in each folder. Note that some scripts have alternative versions that use different methods to achieve the same result. The alternative versions are denoted by a letter after the number, for example, `11a_match_titles.py`.
