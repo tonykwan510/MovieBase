@@ -2,7 +2,7 @@
 import os
 import numpy as np
 import pandas as pd
-from sqlalchemy import create_engine, Integer
+from sqlalchemy import create_engine, SmallInteger
 
 host = os.getenv('MYSQL_HOST')
 user = os.getenv('MYSQL_USER')
@@ -41,7 +41,8 @@ pd.DataFrame(titleTypes, columns=['name']) \
 pd.DataFrame(genres, columns=['name']) \
 	.to_sql('genres', engine, if_exists='replace', index_label='id')
 
-df.to_sql('movies', engine, if_exists='replace', index_label='id', dtype={'runtime': Integer()})
+df.to_sql('movies', engine, if_exists='replace', index_label='id',
+	dtype={'year': SmallInteger(), 'runtime': SmallInteger()})
 
 # Set primary and foreign keys
 with engine.connect() as conn:
