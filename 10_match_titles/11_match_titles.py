@@ -53,7 +53,7 @@ print('Loading IMDb metadata...')
 imdb_meta = load_imdb_meta('../data/IMDb/imdb_meta.tsv.gz', 'tconst', 'primaryTitle')
 
 print('Loading Amazon metadata...')
-amazon_meta = load_amazon_meta('../data/Amazon/amazon_meta.json', 'asin', 'title')
+amazon_meta = load_amazon_meta('../data/Amazon/amazon_meta_p2.json', 'asin', 'title')
 match_keys = {key: [] for key in amazon_meta.keys()}
 
 k = 1

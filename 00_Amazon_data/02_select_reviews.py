@@ -1,9 +1,9 @@
-# Filter reviews based on metadata
+# Filter reviews based on metadata and review counts
 import json, os
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StringType
-from pyspark.sql.functions import col
+from pyspark.sql.functions import broadcast, col
 
 # Read Product IDs (asin) from metadata
 infile = '../data/Amazon/amazon_meta.json'
@@ -33,11 +33,21 @@ review_df = spark.read.json(path)
 # Convert Product ID list to DataFrame
 asin_df = spark.createDataFrame(asin_list, StringType()).select(col('value').alias('asin'))
 
-# Join DataFrames
-df = review_df.join(asin_df, on='asin', how='inner')
+# Keep products with at least 100 reviews
+count_df = review_df.groupBy('asin').count() \
+	.filter(col('count') >= 100) \
+	.join(asin_df, on='asin', how='inner')
 
-# Output to S3
-path = f's3a://{bucket}/{desc}'
-df.coalesce(16).write.json(path, compression='gzip')
+# Filter reviews
+review_df = review_df.join(count_df.drop(col('count')), on='asin', how='inner')
 
+# Output filtered reviews to S3
+path = f's3a://{bucket}/{desc}.parquet'
+review_df.coalesce(16).write.parquet(path)
+
+# Output filtered product list
+count_df = count_df.toPandas()
 spark.stop()
+
+outfile = '../data/Amazon/review_count.csv'
+count_df.to_csv(outfile, index=False)

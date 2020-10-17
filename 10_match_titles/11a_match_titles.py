@@ -35,7 +35,7 @@ usecols = [name for name in names if name[0] != 'X']
 imdb_df = pd.read_csv(path, sep='\t', header=0, names=names, usecols=usecols, compression='gzip')
 
 # Load Amazon metadata
-path = '../data/Amazon/amazon_meta.json'
+path = '../data/Amazon/amazon_meta_p2.json'
 records = []
 for line in open(path, 'r'):
 	item = json.loads(line.strip())

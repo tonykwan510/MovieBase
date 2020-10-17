@@ -44,6 +44,8 @@ Python packages used in the project:
 - `boto3` for AWS S3 bucket operations
 - `pyspark` for distributed computing
 - `pandas` for structured data manipulations
+- `s3fs` for reading from AWS S3 bucket
+- `pyarrow` for processing Parquet files
 - `sqlalchemy` for database operations
 - `flask` for web application
 - `flask_sqlalchemy` for database operations

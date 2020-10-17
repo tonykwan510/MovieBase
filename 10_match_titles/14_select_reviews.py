@@ -29,8 +29,8 @@ asin_list = sc.broadcast(asin_list).value
 spark = SparkSession(sc)
 
 # Read raw reviews into Dataframe
-path = f's3a://{bucket}/{src}'
-review_df = spark.read.json(path)
+path = f's3a://{bucket}/{src}.parquet'
+review_df = spark.read.parquet(path)
 
 # Convert Product ID list to DataFrame
 asin_df = spark.createDataFrame(asin_list, StringType()).select(col('value').alias('asin'))
@@ -39,7 +39,7 @@ asin_df = spark.createDataFrame(asin_list, StringType()).select(col('value').ali
 df = review_df.join(asin_df, on='asin', how='inner')
 
 # Output to S3
-path = f's3a://{bucket}/{desc}'
-df.coalesce(16).write.json(path, compression='gzip')
+path = f's3a://{bucket}/{desc}.parquet'
+df.coalesce(16).write.parquet(path)
 
 spark.stop()

@@ -21,7 +21,7 @@ print('Listing partitions...')
 region = os.getenv('AWS_REGION')
 bucket = os.getenv('AWS_BUCKET')
 prefix = '00_Amazon_data/amazon_reviews_match'
-suffix = '.json.gz'
+suffix = '.parquet'
 s3 = boto3.client('s3', region_name=region)
 keys = list_objects(s3, bucket, prefix, suffix)
 print(f'{len(keys)} partitions found.')
@@ -37,16 +37,17 @@ engine = create_engine(f'mysql://{user}:{password}@{host}/{database}')
 with engine.connect() as conn:
 	movie_df = pd.read_sql('SELECT id AS movie_id, imdb_id FROM movies', conn, index_col='imdb_id')
 
+s3a = s3fs.S3FileSystem()
+columns=['asin', 'overall', 'reviewText', 'reviewTime', 'reviewerID', 'reviewerName', 'summary', 'verified']
 for k, key in enumerate(keys):
 	# Read partition
 	print(f'Reading partition ({k+1}/{len(keys)})...')
 	path = f's3a://{bucket}/{key}'
-	review_df = pd.read_json(path, orient='records', compression='gzip',
-			convert_dates=['reviewTime'], lines=True) \
-		.drop(columns=['style', 'unixReviewTime', 'vote', 'image']) \
+	review_df = pd.read_parquet(path, columns=columns, filesystem=s3a) \
 		.join(match_df, on='asin', how='inner') \
 		.join(movie_df, on='imdb_id', how='inner') \
 		.drop(columns=['asin', 'imdb_id'])
+	review_df.reviewTime = pd.to_datetime(review_df.reviewTime, format='%m %d, %Y')
 
 	# Load partition into database
 	print(f'Loading {len(review_df)} records into database...')
