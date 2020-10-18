@@ -1,5 +1,5 @@
 # Match Amazon and IMDb titles
-# Part 2: Handle multiple matches by using year
+# Part 3: Filter multiple matches by description year
 import gzip, json, re
 
 # Load year information of IMDb titles
@@ -29,7 +29,7 @@ def load_amazon_meta(path):
 	for line in open(path, 'r'):
 		item = json.loads(line.strip())
 		if item['description']:
-			years = extract_years(item['description'][0], 1888, 2018)
+			years = extract_years(item['description'][0], 1888, 2016)
 			if len(years) == 1:
 				meta[item['asin']] = years[0]
 	return meta
@@ -40,8 +40,8 @@ imdb_meta = load_imdb_meta('../data/IMDb/imdb_meta.tsv.gz', 'tconst', 'startYear
 print('Loading Amazon metadata...')
 amazon_meta = load_amazon_meta('../data/Amazon/amazon_meta.json')
 
-infile = '../data/amazon_imdb_match.txt'
-outfile = '../data/amazon_imdb_match_p2.txt'
+infile = '../data/amazon_imdb_match_p2.txt'
+outfile = '../data/amazon_imdb_match_p3.txt'
 
 n1 = 0
 n2 = 0

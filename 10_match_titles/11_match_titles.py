@@ -111,4 +111,4 @@ with open('../data/amazon_imdb_match.txt', 'w') as op:
 	for asin, imdb_ids in match_keys.items():
 		if len(imdb_ids) >= 1:
 			s = ','.join(imdb_ids)
-			op.write(f'{asin_id} {s}\n')
+			op.write(f'{asin} {s}\n')

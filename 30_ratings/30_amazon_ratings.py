@@ -28,8 +28,8 @@ matches = sc.broadcast(matches).value
 spark = SparkSession(sc)
 
 # Read raw reviews into Dataframe
-path = f's3a://{bucket}/{src}'
-review_df = spark.read.json(path).select('asin', 'overall')
+path = f's3a://{bucket}/{src}.parquet'
+review_df = spark.read.parquet(path).select('asin', 'overall')
 
 # Convert Product ID list to DataFrame
 match_df = spark.createDataFrame(matches, ['asin', 'imdb_id'])

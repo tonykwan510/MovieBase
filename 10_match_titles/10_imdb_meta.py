@@ -2,7 +2,7 @@
 # - Keep only titles belonging to certain types
 # - Discard certain single-genre titles
 # - Discard titles with no year information
-# - Keep titles up to 2018 (Amazon reviews are up to 2018)
+# - Keep titles up to 2016 (Amazon metadata are up to 2016)
 import gzip
 
 infile = '../data/IMDb/title.akas.tsv.gz'
@@ -57,7 +57,7 @@ with gzip.open(outfile, 'wt') as op:
 		if movie['genres'] in skip_genres or movie['startYear'] == '\\N': continue
 
 		# Filter by title type and year
-		if movie['titleType'] in title_types and int(movie['startYear']) <= 2018 and movie['tconst'] in titles:
+		if movie['titleType'] in title_types and int(movie['startYear']) <= 2016 and movie['tconst'] in titles:
 			ntitle += 1
 			op.write(line)
 
