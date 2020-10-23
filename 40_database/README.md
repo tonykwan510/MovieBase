@@ -7,4 +7,5 @@ Scripts to load data into database.
 - `42_load_amazon_reviews.py`: Load Amazon reviews into database.
 - `43_load_amazon_ratings.py`: Load Amazon ratings into database.
 - `43a_load_amazon_ratings.py`: Alternative version: Compute Amazon ratings using SQL.
+- `44_load_imdb_reviews.py`: Load Imdb reviews into database.
 - `45_load_imdb_ratings.py`: Load IMDb ratings into database.
