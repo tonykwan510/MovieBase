@@ -1,12 +1,14 @@
 # Movie Advisor
 
-Movie recommendation from user reviews.
+Movie recommendation system based on user reviews.
 
 ## Introduction
 
 Movie reviews can be confusing. Different websites may rate a movie differently. If we try to take a closer look at the user reviews, there are just too many reviews. What can we do?
 
-In this project, Amazon product reviews and IMDb titles metadata are used to built a movie review database, and a movie recommendation system is built on top of the database. Users can use different criteria to search movies, as well as use keyword search to navigate the movie reviews.
+In this project, Amazon product reviews and IMDb data are used to built a movie review database, and a movie recommendation system is built on top of the database. Users can use different criteria to search movies, as well as use keyword search to navigate movie reviews.
+
+5-minute demo: https://youtu.be/sw1i-L6jZZc
 
 ## Data Sources
 
@@ -20,16 +22,22 @@ IMDb titles metadata
 
 ## Data Challenge
 
-Data cleaning is needed on Amazon product names before they can be matched with IMDb movie titles. Below are some examples of Amazon product names and the matched IMDb title.
+A big challenge in the project is entity matching because Amazon product titles are very dirty. Below are some examples of Amazon product names and the matched IMDb title.
 
 | Amazon Product Name          | IMDb Title           |
 | ---------------------------- | -------------------- |
-| Mr \&amp; Mrs Smith VHS        | Mr & Mrs Smith       |
+| Mr \&amp; Mrs Smith VHS      | Mr & Mrs Smith       |
 | THE SIXTH SENSE              | The Sixth Sense      |
 | Reno 911! - Miami            | Reno 911!: Miami     |
 | Timeline (2003) (Widescreen) | Timeline             |
 | Heart of the Country, The    | Heart of the Country |
 
+A multiple-round matching approach was used to perform the matching. In each round, the titles are transformed before exact matching is perfromed. The transformations in later rounds are more aggressive to get more matches.
+- Round 1: Fix HTML escape characters and discard words such as VHS and DVD.
+- Round 2: Turn into lower case.
+- Round 3: Discard special characters.
+- Round 4: Discard parentheses and the contents.
+- Round 5: Discard "the".
 
 ## Installation
 
@@ -49,6 +57,24 @@ Python packages used in the project:
 - `sqlalchemy` for database operations
 - `flask` for web application
 - `flask_sqlalchemy` for database operations
+
+## Frontend
+
+The search engine can be found [here](http://www.databuilder.xyz/movie). I will keep it running for as long as I can.The search engine is actually a primitive RESTful API that return HTML by default. Below are the available keys.
+
+Movie endpoint:
+- `title` (optional): Title keyword.
+- `year` (optional): Release year (up to 2016).
+- `genre` (optional): 00 - Action; 01 - Adult; 02 - Adventure; 03 - Animation; 04 - Biography; 05 - Comedy; 06 - Crime; 07 - Documentary; 08 - Drama; 09 - Family; 10 - Fantasy; 11 - Film-Noir; 12 - History; 13 - Horror; 14 - Music; 15 - Musical; 16 - Mystery; 17 - News; 18 - Romance; 19 - Sci-Fi; 20 - Sport; 21 - Thriller; 22 - War; 23 - Western
+- `sortkey` (optional): Ordering of movies. `amazon_rating` or `imdb_rating`.
+- `page` (optional): Page number. Number of results paer page is currently fixed to be 10.
+- `output` (optional): Output format. `html` or `json`. Default is `html`.
+
+Review endpoint:
+- `movie`: Movie ID.
+- `keyword`(optional): Review keyword. 
+- `page` (optional): Page number. Number of results per page is currently fixed to be 10.
+- `output` (optional): Output format. `html` or `json`. Default is `html`.
 
 ## Repo Structure
 

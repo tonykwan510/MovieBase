@@ -1,6 +1,6 @@
 # Web server
 import os
-from flask import Flask, redirect, render_template, request, url_for, flash
+from flask import Flask, jsonify, redirect, render_template, request, url_for, flash
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy import desc
 from flask_sqlalchemy import SQLAlchemy
@@ -69,6 +69,9 @@ def show_movie():
 	page = request.args.get('page', 1, type=int)
 	result = query.paginate(page, nitem, False)
 
+	if request.args.get('output', None) == 'json':
+		return jsonify([{c.name: getattr(item, c.name) for c in item.__table__.columns} for item in result.items])
+
 	args = request.args.copy()
 	if result.has_prev:
 		args['page'] = page - 1
@@ -102,6 +105,9 @@ def show_review():
 	nitem = app.config['REVIEW_PER_PAGE']
 	page = request.args.get('page', 1, type=int)
 	result = query.paginate(page, nitem, False)
+
+	if request.args.get('output', None) == 'json':
+		return jsonify([{c.name: getattr(item, c.name) for c in item.__table__.columns} for item in result.items])
 
 	args = request.args.copy()
 	if result.has_prev:
