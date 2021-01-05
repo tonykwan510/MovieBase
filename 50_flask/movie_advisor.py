@@ -2,8 +2,9 @@
 import os
 from flask import Flask, jsonify, redirect, render_template, request, url_for, flash
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy import desc
+from sqlalchemy import Integer, desc
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.schema import MetaData, Table, Column, ForeignKey
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = __name__
@@ -22,8 +23,16 @@ session = db.session
 
 Base = automap_base()
 Base.prepare(db.engine, reflect=True)
-movies = Base.classes.movies
-reviews = Base.classes.amazon_reviews
+Movies = Base.classes.movies
+Genres = Base.classes.genres
+Reviews = Base.classes.amazon_reviews
+
+# Declare Movie_genres explicitly because auto-reflection does not work
+metadata = MetaData(bind=db.engine)
+Movie_genres = Table('movie_genres', metadata,
+	Column('movie_id', Integer, ForeignKey(Movies.id), primary_key=True),
+	Column('genre_id', Integer, ForeignKey(Genres.id), primary_key=True),
+	autoload_with=db.engine)
 
 # Read options for drop-down lists
 with db.engine.connect() as conn:
@@ -53,13 +62,13 @@ def show_movie():
 		return render_template('movie.html', options=options)
 
 	# Construct query
-	query = session.query(movies)
+	query = session.query(Movies)
 	title = request.args.get('title', None)
-	if title: query = query.filter(movies.title.like(f'%{title}%'))
+	if title: query = query.filter(Movies.title.like(f'%{title}%'))
 	year = request.args.get('year', None, type=int)
 	if year: query = query.filter_by(year=year)
 	genre = request.args.get('genre', None)
-	if genre: query = query.filter(movies.genres.like(f'%{genre}%'))
+	if genre: query = query.join(Movie_genres).filter(Movie_genres.c.genre_id==int(genre))
 	sortkey = request.args.get('sortkey', None)
 	if not sortkey: sortkey = list(options['sortkeys'].keys())[0]
 	query = query.order_by(desc(sortkey))
@@ -94,12 +103,12 @@ def show_review():
 	if not movie_id: return redirect(url_for('show_movie'))
 
 	# Read movie information from database
-	movie = session.query(movies).get(movie_id)
+	movie = session.query(Movies).get(movie_id)
 
 	# Construct query
-	query = session.query(reviews).filter_by(movie_id=movie_id)
+	query = session.query(Reviews).filter_by(movie_id=movie_id)
 	keyword = request.args.get('keyword', None)
-	if keyword: query = query.filter(reviews.reviewText.like(f'%{keyword}%'))
+	if keyword: query = query.filter(Reviews.reviewText.like(f'%{keyword}%'))
 
 	# Pagination
 	nitem = app.config['REVIEW_PER_PAGE']

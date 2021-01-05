@@ -13,24 +13,26 @@ database = 'reviews'
 path = '../data/IMDb/imdb_meta_match.tsv'
 names = ['imdb_id', 'titleType', 'title', 'X1', 'isAdult', 'year', 'X2', 'runtime', 'genres']
 usecols = [name for name in names if name[0] != 'X']
-df = pd.read_csv(path, sep='\t', header=0, names=names, usecols=usecols)
+movies = pd.read_csv(path, sep='\t', header=0, names=names, usecols=usecols)
 
 # Recode titeType
-titleTypes = df.titleType.unique()
+titleTypes = movies.titleType.unique()
 titleType_dict = {val: k for k, val in enumerate(titleTypes)}
-df.titleType = df.titleType.apply(lambda x: titleType_dict[x])
+movies.titleType = movies.titleType.apply(lambda x: titleType_dict[x])
 
 # Recode isAdult
-df.isAdult = df.isAdult.apply(lambda x: x==1)
+movies.isAdult = movies.isAdult.apply(lambda x: x==1)
 
 # Recode runtime
-df.loc[df.runtime==r'\N', 'runtime'] = np.nan
-df.runtime = df.runtime.astype('float')
+movies.loc[movies.runtime==r'\N', 'runtime'] = np.nan
+movies.runtime = movies.runtime.astype('float')
 
 # Recode genres
-genres = sorted(list(set(genre for s in df.genres.values for genre in s.split(','))))
+genres = sorted(set(genre for s in movies.genres.values for genre in s.split(',')))
 genre_dict = {val: k for k, val in enumerate(genres)}
-df.genres = df.genres.apply(lambda x: ','.join(f'{genre_dict[genre]:02d}' for genre in x.split(',')))
+movies.genres = movies.genres.apply(lambda x: [genre_dict[genre] for genre in x.split(',')])
+movie_genres = pd.DataFrame(movies.genres.explode()).rename(columns={'genres':'genre_id'})
+movies.genres = movies.genres.apply(lambda x: ','.join(f'{code:02d}' for code in x))
 
 # Load data to database
 engine = create_engine(f'mysql://{user}:{password}@{host}/{database}')
@@ -41,8 +43,10 @@ pd.DataFrame(titleTypes, columns=['name']) \
 pd.DataFrame(genres, columns=['name']) \
 	.to_sql('genres', engine, if_exists='replace', index_label='id')
 
-df.to_sql('movies', engine, if_exists='replace', index_label='id',
+movies.to_sql('movies', engine, if_exists='replace', index_label='id',
 	dtype={'year': SmallInteger(), 'runtime': SmallInteger()})
+
+movie_genres.to_sql('movie_genres', engine, if_exists='replace', index_label='movie_id')
 
 # Set primary and foreign keys
 with engine.connect() as conn:
@@ -50,3 +54,8 @@ with engine.connect() as conn:
 	conn.execute('ALTER TABLE genres ADD PRIMARY KEY (id)')
 	conn.execute('ALTER TABLE movies ADD PRIMARY KEY (id)')
 	conn.execute('ALTER TABLE movies ADD FOREIGN KEY (titleType) REFERENCES titleTypes(id)')
+	conn.execute('ALTER TABLE movie_genres ADD PRIMARY KEY (movie_id, genre_id)')
+	conn.execute('ALTER TABLE movie_genres ADD FOREIGN KEY (movie_id) REFERENCES movies(id)')
+	conn.execute('ALTER TABLE movie_genres ADD FOREIGN KEY (genre_id) REFERENCES genres(id)')
+	conn.execute('ALTER TABLE movie_genres ADD INDEX (movie_id)')
+	conn.execute('ALTER TABLE movie_genres ADD INDEX (genre_id)')

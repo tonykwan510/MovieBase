@@ -32,7 +32,7 @@ A big challenge in the project is entity matching because Amazon product titles 
 | Timeline (2003) (Widescreen) | Timeline             |
 | Heart of the Country, The    | Heart of the Country |
 
-A multiple-round matching approach was used to perform the matching. In each round, the titles are transformed before exact matching is perfromed. The transformations in later rounds are more aggressive to get more matches.
+A multiple-round matching approach was used to perform the matching. In each round, the titles are transformed before exact matching is performed. The transformations in later rounds are more aggressive to get more matches.
 - Round 1: Fix HTML escape characters and discard words such as VHS and DVD.
 - Round 2: Turn into lower case.
 - Round 3: Discard special characters.
@@ -60,14 +60,14 @@ Python packages used in the project:
 
 ## Frontend
 
-The search engine can be found [here](http://www.databuilder.xyz/movie). I will keep it running for as long as I can.The search engine is actually a primitive RESTful API that return HTML by default. Below are the available keys.
+The search engine can be found [here](http://www.databuilder.xyz/movie). I will keep it running for as long as I can. The search engine is actually a primitive RESTful API that return HTML by default. Below are the available keys.
 
 Movie endpoint:
 - `title` (optional): Title keyword.
 - `year` (optional): Release year (up to 2016).
 - `genre` (optional): 00 - Action; 01 - Adult; 02 - Adventure; 03 - Animation; 04 - Biography; 05 - Comedy; 06 - Crime; 07 - Documentary; 08 - Drama; 09 - Family; 10 - Fantasy; 11 - Film-Noir; 12 - History; 13 - Horror; 14 - Music; 15 - Musical; 16 - Mystery; 17 - News; 18 - Romance; 19 - Sci-Fi; 20 - Sport; 21 - Thriller; 22 - War; 23 - Western
 - `sortkey` (optional): Ordering of movies. `amazon_rating` or `imdb_rating`.
-- `page` (optional): Page number. Number of results paer page is currently fixed to be 10.
+- `page` (optional): Page number. Number of results per page is currently fixed to be 10.
 - `output` (optional): Output format. `html` or `json`. Default is `html`.
 
 Review endpoint:
@@ -75,6 +75,16 @@ Review endpoint:
 - `keyword`(optional): Review keyword. 
 - `page` (optional): Page number. Number of results per page is currently fixed to be 10.
 - `output` (optional): Output format. `html` or `json`. Default is `html`.
+
+## Database Design
+
+The database is designed to optimize both space and speed. For example, a movie may belong to multiple genres. The followings show how the genre information is stored in the database.
+
+- To save space, instead of storing the raw genre names, genres are encoded with encoding information in a separate table `genres`.
+- To speed up filtering by genre, the (`movie_id`, `genre_id`) pairs are stored in a separate table `movie_genres` with indexing on both columns.
+- To avoid costly join when retrieving genres of matched movies, the encoded genre list of a movie is also stored in the `movies` table as a comma-separated string.
+
+The search engine pre-fetched the genre encoding table into a dictionary, so that decoding of genres can be performed on-the-fly without extra SQL join. With this, SQL join is only required when filtering movie by genre, in which case the `movies` and `movie_genres` tables are joined. For implementation details, please refer to the Python files in the `50_flask` folder.
 
 ## Repo Structure
 
